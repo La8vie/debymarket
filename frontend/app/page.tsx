@@ -53,9 +53,9 @@ export default function Home() {
                 className="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow p-6 flex flex-col border-t-4 border-blue-600"
               >
                <img 
-  src={`https://via.placeholder.com/400x300/E2E8F0/4F46E5?text=${product.name.replace(/ /g, '+')}`} 
+  src={`https://placehold.co/400x300/e2e8f0/4f46e5?text=${encodeURIComponent(product.name)}`} 
   alt={product.name}
-  className="bg-gray-200 rounded-lg h-40 mb-4 w-full object-cover"
+  className="rounded-lg h-48 mb-4 w-full object-cover"
 />
                 <h2 className="text-lg font-semibold text-gray-800 mb-2">
                   {product.name}
