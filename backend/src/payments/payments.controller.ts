@@ -7,8 +7,8 @@ export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @Post('initiate')
-  async initiatePayment(@Body() body: { orderId: string; amount: number }) {
-    return this.paymentsService.initiatePayment(body.orderId, body.amount);
+  async initiatePayment(@Body() body: { orderId: string; amount: number; customerName?: string }) {
+    return this.paymentsService.initiatePayment(body.orderId, body.amount, body.customerName);
   }
 
   // Route publique pour recevoir les webhooks de CinetPay (pas de JWT)

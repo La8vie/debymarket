@@ -52,9 +52,11 @@ export default function Home() {
                 key={product.id}
                 className="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow p-6 flex flex-col border-t-4 border-blue-600"
               >
-                <div className="bg-gray-200 rounded-lg h-40 mb-4 flex items-center justify-center text-gray-400">
-                  Image
-                </div>
+               <img 
+  src={`https://via.placeholder.com/400x300/E2E8F0/4F46E5?text=${product.name.replace(/ /g, '+')}`} 
+  alt={product.name}
+  className="bg-gray-200 rounded-lg h-40 mb-4 w-full object-cover"
+/>
                 <h2 className="text-lg font-semibold text-gray-800 mb-2">
                   {product.name}
                 </h2>

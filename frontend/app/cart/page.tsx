@@ -2,9 +2,41 @@
 
 import { useCart } from "../context/CartContext";
 import Link from "next/link";
+import { useState } from "react";
 
 export default function CartPage() {
   const { cartItems, removeFromCart, cartTotal, clearCart } = useCart();
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Ajout de la fonction de paiement
+  const handleCheckout = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments/initiate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: "ORDER-TEST-001", // En réalité, on créerait la commande d'abord en BDD
+          amount: cartTotal,
+          customerName: "Client Debymarket"
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.payment_url) {
+        // On redirige le client vers la page CinetPay (Orange Money, MTN, Moov)
+        window.location.href = data.payment_url;
+      } else {
+        alert("Erreur lors de la génération du lien de paiement");
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+      alert("Erreur de connexion au serveur");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <main className="min-h-screen p-8 bg-gray-50">
@@ -53,8 +85,12 @@ export default function CartPage() {
                 >
                   Vider le panier
                 </button>
-                <button className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors font-bold text-lg">
-                  Payer avec Mobile Money 💳
+                <button 
+                  onClick={handleCheckout} 
+                  disabled={isLoading} // Désactive le bouton pendant le chargement
+                  className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors font-bold text-lg disabled:bg-gray-400"
+                >
+                  {isLoading ? "Redirection en cours..." : "Payer avec Mobile Money 💳"}
                 </button>
               </div>
             </div>

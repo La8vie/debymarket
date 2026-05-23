@@ -67,7 +67,7 @@ export default function AdminProductsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Supprimer ce produit ?")) return;
     try {
-      const res = await fetch(`http://localhost:3000/products/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}`, {
         method: "DELETE",
       });
       if (res.ok) setProducts((prev) => prev.filter((p) => p.id !== id));
