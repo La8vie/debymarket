@@ -18,7 +18,7 @@ export default function AdminProductsPage() {
   const [newPrice, setNewPrice] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:3000/products")
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`)
       .then((res) => res.json())
       .then((data) => {
         const mapped = (data || []).map((p: any) => ({
@@ -38,7 +38,7 @@ export default function AdminProductsPage() {
     e.preventDefault();
     const payload = { name: newName, slug: newSlug, price: Number(newPrice) };
     try {
-      const res = await fetch("http://localhost:3000/products", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
