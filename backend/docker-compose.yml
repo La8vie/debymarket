@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  # Base de données PostgreSQL
+  db:
+    image: postgres:16-alpine
+    container_name: debymarket_db
+    environment:
+      POSTGRES_USER: aova_user
+      POSTGRES_PASSWORD: aova_password
+      POSTGRES_DB: aova_ecommerce
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
