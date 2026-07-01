@@ -44,11 +44,11 @@ function ProductCard({ product, onAddToCart }: { product: Product; onAddToCart: 
     <div className="product-card bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col group">
       {/* Image */}
       <div className="relative overflow-hidden bg-gray-50">
-        <img
-          src={`https://placehold.co/400x300/e2e8f0/4f46e5?text=${encodeURIComponent(product.name)}`}
-          alt={product.name}
-          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
-        />
+      <img 
+        src={`https://placehold.co/400x300/1e3a8a/4ade80?text=${encodeURIComponent(product.name)}`} 
+        alt={product.name}
+        className="rounded-lg h-48 mb-4 w-full object-cover"
+/>
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1">
           {isNew && <span className="bg-indigo-600 text-white text-xs font-bold px-2 py-1 rounded-full">NOUVEAU</span>}
@@ -476,7 +476,7 @@ export default function Home() {
         {/* Bottom bar */}
         <div className="border-t border-gray-800">
           <div className="max-w-7xl mx-auto px-4 py-5 flex flex-col md:flex-row justify-between items-center gap-3 text-sm text-gray-400">
-            <p>© 2025 Debymarket. Tous droits réservés.</p>
+            <p>© 2026 Debymarket. Tous droits réservés.</p>
             <div className="flex items-center gap-2 text-xs">
               <span className="bg-gray-800 px-3 py-1 rounded-full">Orange Money</span>
               <span className="bg-gray-800 px-3 py-1 rounded-full">MTN MoMo</span>
