@@ -24,18 +24,20 @@ export default function CartPage() {
       const data = await response.json();
       if (data.payment_url) {
         // Validate URL to prevent open redirect vulnerability
-        try {
-          const url = new URL(data.payment_url);
-          const allowedDomains = ['pay.ci', 'orange.ci', 'mtn.ci', 'moov.africa', 'wave.com', 'localhost'];
-          const isAllowed = allowedDomains.some(domain => url.hostname.includes(domain));
-          
-          if (isAllowed) {
-            window.location.href = data.payment_url;
-          } else {
-            alert("URL de paiement non autorisée");
-          }
-        } catch {
-          alert("URL de paiement invalide");
+        const allowedDomains = [
+          'https://pay.ci',
+          'https://orange.ci',
+          'https://mtn.ci',
+          'https://moov.africa',
+          'https://wave.com',
+          'http://localhost'
+        ];
+        
+        if (allowedDomains.some(domain => data.payment_url.startsWith(domain))) {
+          window.location.href = data.payment_url;
+        } else {
+          console.error("Redirection bloquée : URL non autorisée");
+          alert("URL de paiement non autorisée");
         }
       } else {
         alert("Erreur lors de la génération du lien de paiement");
