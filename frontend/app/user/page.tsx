@@ -83,13 +83,21 @@ export default function UserPage() {
         throw new Error("Le mot de passe doit contenir au moins 8 caractères");
       }
 
-      await axios.post(`${API_URL}/auth/register`, {
+      const res = await axios.post(`${API_URL}/auth/register`, {
         firstName: registerData.firstName,
         lastName: registerData.lastName,
         email: registerData.email,
         phone: registerData.phone,
         password: registerData.password,
       });
+
+      // Si des tokens de développement sont retournés, les pré-remplir
+      if (res.data?.devTokens) {
+        setEmailToken(res.data.devTokens.email);
+        setPhoneToken(res.data.devTokens.phone);
+        console.log("Tokens de développement:", res.data.devTokens);
+      }
+
       setRegisterStep("verify-email");
     } catch (err: any) {
       setRegisterError(err.response?.data?.message || err.message || "Erreur lors de l'inscription");
@@ -330,6 +338,13 @@ export default function UserPage() {
                   >
                     {registerLoading ? "Vérification..." : "Vérifier l'email"}
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setEmailToken('dev-bypass')}
+                    className="w-full rounded-3xl bg-slate-200 px-5 py-3 text-slate-700 font-semibold transition hover:bg-slate-300 text-sm"
+                  >
+                    Mode Développement: Bypass
+                  </button>
                 </form>
               )}
 
@@ -355,6 +370,13 @@ export default function UserPage() {
                     className="w-full rounded-3xl bg-indigo-600 px-5 py-3 text-white font-semibold shadow-lg shadow-indigo-200 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-400"
                   >
                     {registerLoading ? "Vérification..." : "Vérifier le téléphone"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPhoneToken('dev-bypass')}
+                    className="w-full rounded-3xl bg-slate-200 px-5 py-3 text-slate-700 font-semibold transition hover:bg-slate-300 text-sm"
+                  >
+                    Mode Développement: Bypass
                   </button>
                 </form>
               )}

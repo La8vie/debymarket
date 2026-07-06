@@ -91,15 +91,22 @@ export class AuthService {
         }),
       ]);
 
-      // Envoyer les emails et SMS
-      await Promise.all([
-        this.notificationService.sendVerificationEmail(
-          dto.email,
-          emailToken,
-          dto.firstName,
-        ),
-        this.notificationService.sendVerificationSMS(dto.phone, phoneToken),
-      ]);
+      // Envoyer les emails et SMS (en mode dev, on log les tokens si l'envoi échoue)
+      try {
+        await Promise.all([
+          this.notificationService.sendVerificationEmail(
+            dto.email,
+            emailToken,
+            dto.firstName,
+          ),
+          this.notificationService.sendVerificationSMS(dto.phone, phoneToken),
+        ]);
+      } catch (error) {
+        console.warn('Erreur lors de l\'envoi des notifications (mode dev?):', error);
+        console.log('TOKENS DE VÉRIFICATION (pour développement):');
+        console.log('Email token:', emailToken);
+        console.log('Phone token:', phoneToken);
+      }
 
       return {
         message:
@@ -109,6 +116,11 @@ export class AuthService {
           email: true,
           phone: true,
         },
+        // En mode dev, on retourne les tokens pour faciliter les tests
+        devTokens: process.env.NODE_ENV !== 'production' ? {
+          email: emailToken,
+          phone: phoneToken,
+        } : undefined,
       };
     } catch (error) {
       console.error("ERREUR LORS DE L'INSCRIPTION:", error);
@@ -120,6 +132,22 @@ export class AuthService {
    * Vérifier l'email avec le token
    */
   async verifyEmail(dto: VerifyEmailDto) {
+    // Mode développement: accepter n'importe quel token si le user existe
+    if (process.env.NODE_ENV !== 'production' && dto.token === 'dev-bypass') {
+      // Trouver un utilisateur non vérifié
+      const unverifiedUser = await this.prisma.user.findFirst({
+        where: { isEmailVerified: false },
+      });
+      if (!unverifiedUser) {
+        throw new BadRequestException('Aucun utilisateur à vérifier');
+      }
+      await this.prisma.user.update({
+        where: { id: unverifiedUser.id },
+        data: { isEmailVerified: true },
+      });
+      return { message: 'Email vérifié avec succès (mode dev)!' };
+    }
+
     const verificationToken = await this.prisma.verificationToken.findUnique({
       where: { token: dto.token },
       include: { user: true },
@@ -157,6 +185,22 @@ export class AuthService {
    * Vérifier le téléphone avec le token
    */
   async verifyPhone(dto: VerifyPhoneDto) {
+    // Mode développement: accepter n'importe quel token si le user existe
+    if (process.env.NODE_ENV !== 'production' && dto.token === 'dev-bypass') {
+      // Trouver un utilisateur avec email vérifié mais téléphone non vérifié
+      const unverifiedUser = await this.prisma.user.findFirst({
+        where: { isEmailVerified: true, isPhoneVerified: false },
+      });
+      if (!unverifiedUser) {
+        throw new BadRequestException('Aucun utilisateur à vérifier');
+      }
+      await this.prisma.user.update({
+        where: { id: unverifiedUser.id },
+        data: { isPhoneVerified: true },
+      });
+      return { message: 'Téléphone vérifié avec succès (mode dev)!' };
+    }
+
     const verificationToken = await this.prisma.verificationToken.findUnique({
       where: { token: dto.token },
       include: { user: true },
