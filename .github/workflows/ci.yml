@@ -13,9 +13,9 @@ jobs:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Use Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@39370e3970a6d86f1c66b5cce7a2f26835fb9abb # v4.1.0
         with:
           node-version: '20'
       - name: Install backend dependencies
@@ -31,9 +31,9 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Use Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@39370e3970a6d86f1c66b5cce7a2f26835fb9abb # v4.1.0
         with:
           node-version: '20'
       - name: Install frontend dependencies
