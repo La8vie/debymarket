@@ -53,7 +53,7 @@ export class AdminNotificationService implements OnModuleInit {
           title: payload.title,
           message: payload.message,
           orderId: payload.orderId,
-          data: payload.data,
+          data: payload.data ? JSON.stringify(payload.data) : null,
         },
       });
 

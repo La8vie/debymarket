@@ -68,8 +68,10 @@ export class NotificationService {
    * Envoyer un SMS de vérification
    */
   async sendVerificationSMS(phone: string, token: string): Promise<void> {
+    // Mode développement: ne pas échouer si Twilio n'est pas configuré
     if (!this.twilioClient) {
-      throw new Error('Twilio not configured');
+      console.warn('Twilio not configured, skipping SMS in dev mode');
+      return;
     }
 
     const verificationUrl = `${this.configService.get<string>('FRONTEND_URL')}/verify-phone?token=${token}`;

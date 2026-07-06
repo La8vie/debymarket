@@ -110,11 +110,11 @@ export class PromotionNotificationService {
               type: 'promotion',
               title: payload.title,
               message: payload.message,
-              data: {
+              data: JSON.stringify({
                 promotionId: payload.promotionId,
                 discountPercent: payload.discountPercent,
                 validUntil: payload.validUntil,
-              },
+              }),
             },
           });
         } catch (error) {
