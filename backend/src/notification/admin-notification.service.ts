@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import type { Prisma } from '@prisma/client';
 import { EventEmitter } from 'events';
@@ -17,8 +17,9 @@ interface AdminNotificationPayload {
 }
 
 @Injectable()
-export class AdminNotificationService implements OnModuleInit {
+export class AdminNotificationService implements OnModuleInit, OnModuleDestroy {
   private readonly notificationEmitter = new EventEmitter();
+  private readonly subscriptions = new Map<string, (notification: any) => void>();
 
   constructor(private prisma: PrismaService) {
     this.notificationEmitter.setMaxListeners(0);
@@ -28,18 +29,28 @@ export class AdminNotificationService implements OnModuleInit {
     console.log('AdminNotificationService initialized');
   }
 
+  onModuleDestroy() {
+    this.notificationEmitter.removeAllListeners();
+    this.subscriptions.clear();
+  }
+
   /**
    * S'abonner aux notifications admin
    */
   subscribe(adminId: string, callback: (notification: any) => void) {
     this.notificationEmitter.on('notification', callback);
+    this.subscriptions.set(adminId, callback);
   }
 
   /**
    * Se désabonner des notifications
    */
-  unsubscribe(adminId: string, callback: (notification: any) => void) {
-    this.notificationEmitter.off('notification', callback);
+  unsubscribe(adminId: string) {
+    const callback = this.subscriptions.get(adminId);
+    if (callback) {
+      this.notificationEmitter.off('notification', callback);
+      this.subscriptions.delete(adminId);
+    }
   }
 
   /**

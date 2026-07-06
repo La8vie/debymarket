@@ -23,7 +23,20 @@ export default function CartPage() {
       });
       const data = await response.json();
       if (data.payment_url) {
-        window.location.href = data.payment_url;
+        // Validate URL to prevent open redirect vulnerability
+        try {
+          const url = new URL(data.payment_url);
+          const allowedDomains = ['pay.ci', 'orange.ci', 'mtn.ci', 'moov.africa', 'wave.com', 'localhost'];
+          const isAllowed = allowedDomains.some(domain => url.hostname.includes(domain));
+          
+          if (isAllowed) {
+            window.location.href = data.payment_url;
+          } else {
+            alert("URL de paiement non autorisée");
+          }
+        } catch {
+          alert("URL de paiement invalide");
+        }
       } else {
         alert("Erreur lors de la génération du lien de paiement");
       }

@@ -103,9 +103,7 @@ export class AuthService {
         ]);
       } catch (error) {
         console.warn('Erreur lors de l\'envoi des notifications (mode dev?):', error);
-        console.log('TOKENS DE VÉRIFICATION (pour développement):');
-        console.log('Email token:', emailToken);
-        console.log('Phone token:', phoneToken);
+        // Tokens are returned in devTokens field for development
       }
 
       return {
