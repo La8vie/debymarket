@@ -9,10 +9,40 @@ type Product = {
   id: string;
   name: string;
   shortDesc?: string;
+  categoryId?: string;
   variants?: Variant[];
 };
 
-const CATEGORIES = ["Tout", "Power Banks", "Câbles", "Chargeurs", "Accessoires", "Audio"];
+type CategorySection = {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+};
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+const CATEGORY_SECTIONS: CategorySection[] = [
+  {
+    id: "electronique",
+    name: "Électronique",
+    description: "Power Banks, câbles, chargeurs et audio performants.",
+    icon: "⚡",
+  },
+  {
+    id: "electromenager",
+    name: "Électroménager",
+    description: "Appareils pratiques pour la maison et la cuisine.",
+    icon: "🍳",
+  },
+  {
+    id: "mode",
+    name: "Mode",
+    description: "Accessoires, vêtements et tendances au quotidien.",
+    icon: "👕",
+  },
+];
+
 const SORT_OPTIONS = [
   { label: "Plus populaires", value: "popular" },
   { label: "Prix croissant", value: "price_asc" },
@@ -44,11 +74,11 @@ function ProductCard({ product, onAddToCart }: { product: Product; onAddToCart: 
     <div className="product-card bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col group">
       {/* Image */}
       <div className="relative overflow-hidden bg-gray-50">
-        <img
-          src={`https://placehold.co/400x300/e2e8f0/4f46e5?text=${encodeURIComponent(product.name)}`}
-          alt={product.name}
-          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
-        />
+      <img 
+        src={`https://placehold.co/400x300/1e3a8a/4ade80?text=${encodeURIComponent(product.name)}`} 
+        alt={product.name}
+        className="rounded-lg h-48 mb-4 w-full object-cover"
+/>
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1">
           {isNew && <span className="bg-indigo-600 text-white text-xs font-bold px-2 py-1 rounded-full">NOUVEAU</span>}
@@ -120,12 +150,26 @@ export default function Home() {
   const { addToCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState("Tout");
+  const [activeCategory, setActiveCategory] = useState("electronique");
   const [sortBy, setSortBy] = useState("popular");
   const [toast, setToast] = useState("");
   const [priceRange, setPriceRange] = useState(500000);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentBanner, setCurrentBanner] = useState(0);
+
+  const activeSection = CATEGORY_SECTIONS.find((section) => section.id === activeCategory);
+  const activeSectionProducts = products.filter((product) =>
+    product.categoryId?.toLowerCase().includes(activeCategory),
+  );
+
+  const scrollToCategory = (id: string) => {
+    setActiveCategory(id);
+    const section = document.getElementById(id);
+    section?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const navigateToCategory = (id: string) => {
+    window.location.href = `/${id}`;
+  };
 
   const BANNERS = [
     { bg: "from-indigo-600 via-purple-600 to-pink-500", title: "Power Banks Ultra", subtitle: "Rechargez partout, à tout moment", cta: "Découvrir", badge: "NOUVEAU 2025" },
@@ -141,7 +185,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`)
+    fetch(`${API_URL}/products`)
       .then((res) => res.json())
       .then((data) => { setProducts(Array.isArray(data) ? data : []); setLoading(false); })
       .catch(() => setLoading(false));
@@ -169,18 +213,21 @@ export default function Home() {
                 <span className="inline-block bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4">{banner.badge}</span>
                 <h1 className="text-4xl md:text-6xl font-black mb-3 leading-tight">{banner.title}</h1>
                 <p className="text-white/80 text-lg md:text-xl mb-6 max-w-lg">{banner.subtitle}</p>
-                <div className="flex gap-3 justify-center md:justify-start">
-                  <button className="bg-white text-indigo-700 font-bold px-6 py-3 rounded-xl hover:bg-gray-100 transition-all shadow-lg">
-                    {banner.cta}
-                  </button>
-                  <button className="border-2 border-white text-white font-semibold px-6 py-3 rounded-xl hover:bg-white/10 transition-all">
-                    Voir tout
-                  </button>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {CATEGORY_SECTIONS.map((section) => (
+                    <button
+                      key={section.id}
+                      onClick={() => navigateToCategory(section.id)}
+                      className="rounded-3xl border border-white/30 bg-white/10 px-4 py-3 text-sm font-semibold text-white hover:bg-white/20 transition"
+                    >
+                      {section.icon} {section.name}
+                    </button>
+                  ))}
                 </div>
               </div>
               <div className="hidden md:flex items-center justify-center">
-                <div className="w-64 h-64 bg-white/20 rounded-3xl flex items-center justify-center text-8xl shadow-2xl backdrop-blur-sm border border-white/30">
-                  ⚡
+                <div className="w-64 h-64 bg-white/10 rounded-3xl flex items-center justify-center shadow-2xl backdrop-blur-sm border border-white/30 overflow-hidden">
+                  <img src="/logo.png" alt="Debymarket" className="w-full h-full object-contain p-6 bg-white/5" />
                 </div>
               </div>
             </div>
@@ -219,119 +266,62 @@ export default function Home() {
 
       {/* Category pills */}
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-semibold transition-all ${
-                activeCategory === cat
-                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200"
-                  : "bg-white text-gray-600 border border-gray-200 hover:border-indigo-300 hover:text-indigo-600"
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {CATEGORY_SECTIONS.map((section) => (
+            <Link
+              key={section.id}
+              href={`/${section.id}`}
+              className={`rounded-3xl border px-5 py-4 text-left transition ${
+                activeCategory === section.id
+                  ? "border-indigo-600 bg-indigo-50 shadow-sm"
+                  : "border-gray-200 bg-white hover:border-indigo-300"
               }`}
             >
-              {cat}
-            </button>
+              <div className="text-2xl mb-2">{section.icon}</div>
+              <div className="text-sm font-bold text-slate-900">{section.name}</div>
+              <p className="text-sm text-slate-500 mt-2">{section.description}</p>
+            </Link>
           ))}
         </div>
       </div>
 
       {/* Main content */}
       <div className="max-w-7xl mx-auto px-4 pb-16">
-        <div className="flex gap-6">
-
-          {/* Sidebar Filters (desktop) */}
-          <aside className="hidden lg:block w-60 flex-shrink-0">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sticky top-32 space-y-6">
-              <h3 className="font-bold text-gray-800 text-sm uppercase tracking-wider">Filtres</h3>
-
-              {/* Price range */}
-              <div>
-                <h4 className="font-semibold text-gray-700 text-sm mb-3">Prix max (XOF)</h4>
-                <input type="range" min={0} max={500000} step={5000} value={priceRange}
-                  onChange={(e) => setPriceRange(Number(e.target.value))}
-                  className="w-full accent-indigo-600"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>0 XOF</span>
-                  <span className="font-bold text-indigo-600">{priceRange.toLocaleString("fr-FR")} XOF</span>
-                </div>
-              </div>
-
-              {/* Categories */}
-              <div>
-                <h4 className="font-semibold text-gray-700 text-sm mb-3">Catégorie</h4>
-                <div className="space-y-2">
-                  {CATEGORIES.map((cat) => (
-                    <label key={cat} className="flex items-center gap-2 cursor-pointer group">
-                      <input type="checkbox" className="accent-indigo-600 w-4 h-4" defaultChecked={cat === "Tout"} />
-                      <span className="text-sm text-gray-600 group-hover:text-indigo-600 transition-colors">{cat}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Brand */}
-              <div>
-                <h4 className="font-semibold text-gray-700 text-sm mb-3">Marque</h4>
-                <div className="space-y-2">
-                  {["Anker", "Baseus", "UGREEN", "Samsung", "Xiaomi"].map((brand) => (
-                    <label key={brand} className="flex items-center gap-2 cursor-pointer group">
-                      <input type="checkbox" className="accent-indigo-600 w-4 h-4" />
-                      <span className="text-sm text-gray-600 group-hover:text-indigo-600 transition-colors">{brand}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Rating */}
-              <div>
-                <h4 className="font-semibold text-gray-700 text-sm mb-3">Note minimum</h4>
-                <div className="space-y-1.5">
-                  {[4, 3, 2, 1].map((r) => (
-                    <label key={r} className="flex items-center gap-2 cursor-pointer">
-                      <input type="radio" name="rating" className="accent-indigo-600" />
-                      <div className="flex gap-0.5">
-                        {[1,2,3,4,5].map((s) => (
-                          <svg key={s} xmlns="http://www.w3.org/2000/svg" className={`h-3.5 w-3.5 ${s <= r ? "star-filled" : "star-empty"}`} viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                          </svg>
-                        ))}
-                      </div>
-                      <span className="text-xs text-gray-500">& plus</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <button className="w-full bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors">
-                Appliquer les filtres
-              </button>
+        <div className="space-y-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-3xl font-black text-gray-800">Découvrez nos univers</h2>
+              <p className="text-gray-500 text-sm mt-2">Trois sections claires pour l'électronique, l'électroménager et la mode — avec un accès direct à chaque collection.</p>
             </div>
-          </aside>
+            <div className="flex flex-wrap gap-3">
+              {CATEGORY_SECTIONS.map((section) => (
+                <Link
+                  key={section.id}
+                  href={`/${section.id}`}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    activeCategory === section.id ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  {section.name}
+                </Link>
+              ))}
+            </div>
+          </div>
 
-          {/* Products section */}
           <div className="flex-1 min-w-0">
             {/* Section header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
               <div>
                 <h2 className="text-2xl font-black text-gray-800">
-                  {activeCategory === "Tout" ? "Tous les produits" : activeCategory}
+                  {activeSection?.name || "Découvrez nos catégories"}
                 </h2>
-                <p className="text-gray-500 text-sm">{products.length} résultats trouvés</p>
+                <p className="text-gray-500 text-sm">
+                  {loading
+                    ? "Chargement des produits..."
+                    : `${activeSectionProducts.length} résultats dans ${activeSection?.name}`}
+                </p>
               </div>
               <div className="flex items-center gap-3">
-                {/* Mobile filter button */}
-                <button
-                  onClick={() => setSidebarOpen(!sidebarOpen)}
-                  className="lg:hidden flex items-center gap-2 border border-gray-200 rounded-xl px-4 py-2 text-sm font-medium text-gray-600 hover:border-indigo-300"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
-                  </svg>
-                  Filtres
-                </button>
-                {/* Sort */}
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
@@ -344,7 +334,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Products grid */}
+            {/* Products sections */}
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                 {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
@@ -359,10 +349,44 @@ export default function Home() {
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
-                ))}
+              <div className="space-y-16">
+                {CATEGORY_SECTIONS.map((section) => {
+                  const sectionProducts = products.filter((product) =>
+                    product.categoryId?.toLowerCase().includes(section.id),
+                  );
+                  return (
+                    <section key={section.id} id={section.id} className="scroll-mt-28">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                          <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-sm font-semibold text-indigo-700 mb-3">
+                            <span>{section.icon}</span>
+                            {section.name}
+                          </div>
+                          <h3 className="text-3xl font-black text-gray-900 mb-2">{section.name}</h3>
+                          <p className="text-gray-500 max-w-2xl">{section.description} Retrouvez les meilleures sélections et les meilleures offres de la catégorie.</p>
+                        </div>
+                        <Link
+                          href={`/${section.id}`}
+                          className="rounded-full border border-indigo-200 bg-white px-5 py-3 text-sm font-semibold text-indigo-700 shadow-sm hover:bg-indigo-50"
+                        >
+                          Voir {section.name}
+                        </Link>
+                      </div>
+
+                      {sectionProducts.length === 0 ? (
+                        <div className="rounded-3xl bg-slate-50 border border-slate-200 p-10 text-center text-slate-500">
+                          Aucun produit trouvé pour cette catégorie.
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                          {sectionProducts.map((product) => (
+                            <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
+                          ))}
+                        </div>
+                      )}
+                    </section>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -476,7 +500,7 @@ export default function Home() {
         {/* Bottom bar */}
         <div className="border-t border-gray-800">
           <div className="max-w-7xl mx-auto px-4 py-5 flex flex-col md:flex-row justify-between items-center gap-3 text-sm text-gray-400">
-            <p>© 2025 Debymarket. Tous droits réservés.</p>
+            <p>© 2026 Debymarket. Tous droits réservés.</p>
             <div className="flex items-center gap-2 text-xs">
               <span className="bg-gray-800 px-3 py-1 rounded-full">Orange Money</span>
               <span className="bg-gray-800 px-3 py-1 rounded-full">MTN MoMo</span>

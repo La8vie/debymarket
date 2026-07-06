@@ -1,0 +1,5 @@
+{
+    "snyk.advanced.autoSelectOrganization": true,
+    "mirrord.promptUsingBinary": false,
+    "snyk.advanced.organization": "e6b2421a-affb-4960-876b-203ff7b36c96"
+}

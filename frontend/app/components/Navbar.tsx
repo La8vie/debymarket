@@ -2,12 +2,44 @@
 
 import { useCart } from "../context/CartContext";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export default function Navbar() {
   const { cartCount } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch(`${API_URL}/auth/me`, {
+        credentials: 'include',
+      });
+      const user = await response.json();
+      setIsLoggedIn(!!user);
+    } catch (error) {
+      setIsLoggedIn(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+    setIsLoggedIn(false);
+    window.location.href = '/login';
+  };
 
   return (
     <>
@@ -23,9 +55,7 @@ export default function Navbar() {
           <div className="flex justify-between items-center py-3 gap-4">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3 flex-shrink-0">
-              <div className="h-12 w-12 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg">
-                <span className="text-white font-black text-xl">D</span>
-              </div>
+              <img src="/logo.png" alt="Debymarket" className="h-12 w-12 rounded-xl object-contain shadow-lg" />
               <div className="hidden sm:block">
                 <span className="text-xl font-black text-indigo-700 tracking-tight">Debymarket</span>
                 <p className="text-xs text-gray-400 uppercase tracking-widest">Marché en ligne</p>
@@ -36,10 +66,9 @@ export default function Navbar() {
             <div className="flex-1 max-w-2xl hidden md:flex items-center bg-gray-100 rounded-xl overflow-hidden border border-transparent focus-within:border-indigo-400 focus-within:bg-white transition-all">
               <select className="bg-transparent text-sm text-gray-500 px-3 py-3 border-r border-gray-300 outline-none cursor-pointer">
                 <option>Tout</option>
-                <option>Power Banks</option>
-                <option>Câbles</option>
-                <option>Chargeurs</option>
-                <option>Accessoires</option>
+                <option>Électronique</option>
+                <option>Électroménager</option>
+                <option>Mode</option>
               </select>
               <input
                 type="text"
@@ -58,7 +87,28 @@ export default function Navbar() {
             {/* Right icons */}
             <div className="flex items-center gap-2">
               {/* Account */}
-              <Link href="#" className="hidden sm:flex flex-col items-center text-gray-600 hover:text-indigo-600 transition-colors px-2">
+              <Link href="/notifications" className="hidden sm:flex flex-col items-center text-gray-600 hover:text-indigo-600 transition-colors px-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                <span className="text-xs mt-0.5">Alertes</span>
+              </Link>
+              {isLoggedIn ? (
+                <button onClick={handleLogout} className="hidden sm:flex items-center text-gray-600 hover:text-indigo-600 transition-colors px-3 py-2 rounded-md border border-transparent hover:bg-gray-50">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7" />
+                  </svg>
+                  <span className="text-sm">Se déconnecter</span>
+                </button>
+              ) : (
+                <Link href="/user" className="hidden sm:flex items-center text-gray-600 hover:text-indigo-600 transition-colors px-3 py-2 rounded-md border border-transparent hover:bg-gray-50">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                  <span className="text-sm">Se connecter</span>
+                </Link>
+              )}
+              <Link href="/preferences" className="hidden sm:flex flex-col items-center text-gray-600 hover:text-indigo-600 transition-colors px-2">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
@@ -103,12 +153,9 @@ export default function Navbar() {
           {/* Category navigation bar */}
           <div className="hidden md:flex items-center gap-6 pb-3 text-sm font-medium border-t border-gray-100 pt-2 overflow-x-auto">
             <Link href="/" className="text-indigo-600 border-b-2 border-indigo-600 pb-1 whitespace-nowrap">🏠 Accueil</Link>
-            <Link href="/" className="text-gray-600 hover:text-indigo-600 transition-colors whitespace-nowrap">⚡ Power Banks</Link>
-            <Link href="/" className="text-gray-600 hover:text-indigo-600 transition-colors whitespace-nowrap">🔌 Câbles & Chargeurs</Link>
-            <Link href="/" className="text-gray-600 hover:text-indigo-600 transition-colors whitespace-nowrap">🎧 Audio</Link>
-            <Link href="/" className="text-gray-600 hover:text-indigo-600 transition-colors whitespace-nowrap">📱 Accessoires Phone</Link>
-            <Link href="/" className="text-gray-600 hover:text-indigo-600 transition-colors whitespace-nowrap">💡 Éclairage LED</Link>
-            <Link href="/" className="text-red-500 font-bold hover:text-red-600 transition-colors whitespace-nowrap">🔥 Promos</Link>
+            <Link href="/electronique" className="text-gray-600 hover:text-indigo-600 transition-colors whitespace-nowrap">⚡ Électronique</Link>
+            <Link href="/electromenager" className="text-gray-600 hover:text-indigo-600 transition-colors whitespace-nowrap">🍳 Électroménager</Link>
+            <Link href="/mode" className="text-gray-600 hover:text-indigo-600 transition-colors whitespace-nowrap">👕 Mode</Link>
           </div>
         </div>
 
@@ -125,8 +172,15 @@ export default function Navbar() {
             </div>
             <div className="flex flex-col gap-2 text-sm font-medium">
               <Link href="/" className="text-indigo-600 py-1">🏠 Accueil</Link>
-              <Link href="/" className="text-gray-600 py-1">⚡ Power Banks</Link>
-              <Link href="/" className="text-gray-600 py-1">🔌 Câbles & Chargeurs</Link>
+              <Link href="/electronique" className="text-gray-600 py-1">⚡ Électronique</Link>
+              <Link href="/electromenager" className="text-gray-600 py-1">🍳 Électroménager</Link>
+              <Link href="/mode" className="text-gray-600 py-1">👕 Mode</Link>
+              <Link href="/notifications" className="text-gray-600 py-1">🔔 Notifications</Link>
+              {isLoggedIn ? (
+                <button onClick={handleLogout} className="text-left text-gray-600 py-1 hover:text-indigo-600">🔐 Se déconnecter</button>
+              ) : (
+                <Link href="/user" className="text-gray-600 py-1">🔐 Se connecter</Link>
+              )}
               <Link href="/cart" className="text-gray-600 py-1">🛒 Mon Panier ({cartCount})</Link>
             </div>
           </div>

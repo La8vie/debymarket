@@ -8,21 +8,26 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(uuid())
-  email        String    @unique
-  passwordHash String    @map("password_hash")
-  role         String    @default("client")
-  firstName    String?   @map("first_name")
-  lastName     String?   @map("last_name")
-  phone        String?
-  isVerified   Boolean   @default(false) @map("is_verified")
-  isActive     Boolean   @default(true) @map("is_active")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime? @map("updated_at")
+  id                    String    @id @default(uuid())
+  email                 String    @unique
+  passwordHash          String    @map("password_hash")
+  role                  String    @default("client")
+  firstName             String?   @map("first_name")
+  lastName              String?   @map("last_name")
+  phone                 String?   @unique
+  isEmailVerified       Boolean   @default(false) @map("is_email_verified")
+  isPhoneVerified       Boolean   @default(false) @map("is_phone_verified")
+  isActive              Boolean   @default(true) @map("is_active")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime? @map("updated_at")
 
-  addresses    Address[]
-  orders       Order[]
-  reviews      Review[]
+  addresses             Address[]
+  orders                Order[]
+  reviews               Review[]
+  verificationTokens    VerificationToken[]
+  notificationPrefs     NotificationPreference?
+  offlineSyncQueue      OfflineSyncQueue[]
+  notifications         Notification[]
 
   @@map("users")
 }
@@ -57,22 +62,24 @@ model Category {
 }
 
 model Product {
-  id          String   @id @default(uuid())
-  name        String
-  slug        String   @unique
-  description String?
-  shortDesc   String?  @map("short_desc")
-  categoryId  String?  @map("category_id")
-  brandId     String?  @map("brand_id")
-  metaTitle   String?  @map("meta_title")
-  metaDesc    String?  @map("meta_desc")
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at")
+  id            String    @id @default(uuid())
+  name          String
+  slug          String    @unique
+  description   String?
+  shortDesc     String?   @map("short_desc")
+  categoryId    String?   @map("category_id")
+  brandId       String?   @map("brand_id")
+  metaTitle     String?   @map("meta_title")
+  metaDesc      String?   @map("meta_desc")
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime? @map("updated_at")
 
-  category    Category?         @relation(fields: [categoryId], references: [id])
-  brand       Brand?            @relation(fields: [brandId], references: [id])
-  variants    ProductVariant[]
-  reviews     Review[]
+  category      Category?         @relation(fields: [categoryId], references: [id])
+  brand         Brand?            @relation(fields: [brandId], references: [id])
+  images        ProductImage[]
+  variants      ProductVariant[]
+  reviews       Review[]
 
   @@map("products")
 }
@@ -222,4 +229,96 @@ model InventoryLog {
   variant     ProductVariant @relation(fields: [variantId], references: [id])
 
   @@map("inventory_logs")
+}
+
+// Image de produit - support URL et fichiers uploadés
+model ProductImage {
+  id        String   @id @default(uuid())
+  productId String   @map("product_id")
+  url       String
+  altText   String?  @map("alt_text")
+  sortOrder Int      @default(0) @map("sort_order")
+  isMain    Boolean  @default(false) @map("is_main")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+// Token de vérification email/SMS
+model VerificationToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  type      String   // 'email' ou 'phone'
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("verification_tokens")
+}
+
+// Préférences de notifications
+model NotificationPreference {
+  id                    String   @id @default(uuid())
+  userId                String   @unique @map("user_id")
+  emailPromotions       Boolean  @default(true) @map("email_promotions")
+  emailOrderUpdates     Boolean  @default(true) @map("email_order_updates")
+  smsPromotions         Boolean  @default(false) @map("sms_promotions")
+  smsOrderUpdates       Boolean  @default(true) @map("sms_order_updates")
+  notificationFrequency String   @default("weekly") @map("notification_frequency") // daily, weekly, monthly
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime? @map("updated_at")
+
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+// Notifications
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  type      String   // 'promotion', 'order_update', 'admin_notification'
+  title     String
+  message   String
+  data      Json?
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// Queue de synchronisation offline
+model OfflineSyncQueue {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  action    String   // 'create_product', 'update_product', 'create_order'
+  data      Json
+  status    String   @default("pending") // pending, synced, failed
+  error     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  syncedAt  DateTime? @map("synced_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("offline_sync_queue")
+}
+
+// Notifications pour l'admin
+model AdminNotification {
+  id        String   @id @default(uuid())
+  type      String   // 'new_order', 'low_stock', 'user_registration'
+  title     String
+  message   String
+  orderId   String?  @map("order_id")
+  data      Json?
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("admin_notifications")
 }

@@ -5,14 +5,16 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { RolesGuard } from './roles.guard';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'secret_key_by_default_for_dev',
+      secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '24h' },
     }),
+    NotificationModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, RolesGuard],

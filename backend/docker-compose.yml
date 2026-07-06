@@ -6,9 +6,9 @@ services:
     image: postgres:16-alpine
     container_name: debymarket_db
     environment:
-      POSTGRES_USER: aova_user
-      POSTGRES_PASSWORD: aova_password
-      POSTGRES_DB: aova_ecommerce
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:

@@ -93,6 +93,72 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 - Website - [https://nestjs.com](https://nestjs.com/)
 - Twitter - [@nestframework](https://twitter.com/nestframework)
 
-## License
+## Project Setup
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### Installer les dépendances
+
+```bash
+npm install
+```
+
+### Configuration
+
+Copiez le modèle et adaptez-le :
+
+```bash
+cp .env.example .env
+```
+### Tester sur un autre réseau
+
+Si tes amis sont sur un autre réseau ou dans une autre ville, `localhost` ne suffit pas.
+
+Option 1 : utilise un tunnel comme `ngrok` ou `localtunnel`.
+
+1. Lance ton backend :
+
+```bash
+npm run start:dev
+```
+
+2. Ouvre un tunnel vers le port 3000 :
+
+```bash
+ngrok http 3000
+```
+
+3. Dans le frontend, utilise l'URL publique de ngrok comme `NEXT_PUBLIC_API_URL` :
+
+```bash
+NEXT_PUBLIC_API_URL=https://xxxxxx.ngrok.io
+```
+
+4. Dans le backend, si tu veux que les liens email utilisent le frontend public, vérifie `FRONTEND_URL` dans `.env`.
+
+Option 2 : déploie le backend et le frontend sur une plateforme publique.
+
+- Backend : Railway, Render, Fly, Heroku, etc.
+- Frontend : Vercel, Netlify, Cloudflare Pages, etc.
+
+Dans ce cas, `NEXT_PUBLIC_API_URL` doit pointer vers l’URL publique du backend, et `FRONTEND_URL` vers l’URL publique du frontend.
+### Lancer en développement
+
+```bash
+npm run start:dev
+```
+
+### Tester
+
+```bash
+npm run test
+npm run test:e2e
+```
+
+## Notes spécifiques
+
+- Le backend utilise Helmet pour sécuriser les en-têtes HTTP.
+- Le backend applique un rate limiting de 100 requêtes par 15 minutes.
+- Les routes de création/édition/suppression de produits sont protégées par JWT et par rôle (`admin`, `manager`).
+
+## Licence
+
+MIT

@@ -2,19 +2,54 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+### Configuration
+
+Copiez le modèle d'environnement :
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Modifier `NEXT_PUBLIC_API_URL` pour pointer vers votre backend.
+
+### Tester depuis une autre ville
+
+Si vous voulez partager le site avec des amis à distance, `localhost` ne suffit pas.
+
+Option 1 : tunnel local avec ngrok
+
+1. Lancez le frontend :
+
+```bash
+npm run dev -- -p 3001
+```
+
+2. Ouvrez un tunnel vers le port 3001 :
+
+```bash
+ngrok http 3001
+```
+
+3. Dans `.env.local`, mettez :
+
+```env
+NEXT_PUBLIC_API_URL=https://xxxxx.ngrok.io
+```
+
+Option 2 : déployer le frontend et le backend
+
+- Frontend : Vercel, Netlify, Cloudflare Pages, etc.
+- Backend : Railway, Render, Fly, Heroku, etc.
+
+Ensuite, mettez `NEXT_PUBLIC_API_URL` sur l’URL publique du backend.
+
+### Démarrage
+
+```bash
+npm run dev -- -p 3001
+```
+
+Ouvrez [http://localhost:3001](http://localhost:3001) avec votre navigateur.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
